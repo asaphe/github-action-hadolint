@@ -1,0 +1,18 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "hadolint",
+      "severity": "warning",
+      "pattern": [
+        {
+          "regexp": "^(?<file>[^:]+):(?<line>[0-9]+) (?<code>DL[0-9]+|SC[0-9]+) (?<level>error|warning|info|style): (?<message>.*)$",
+          "file": 1,
+          "line": 2,
+          "code": 3,
+          "severity": 4,
+          "message": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+name: "Hadolint"
+description: "Download and run Hadolint against a Dockerfile without requiring container actions"
+
+inputs:
+  dockerfile:
+    description: "Path to the Dockerfile to lint"
+    required: true
+  config:
+    description: "Path to the Hadolint configuration file"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    # Should be removed once we have a Node.js version in the runner image
+    - name: Setup Node.js (required by composite actions)
+      uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      with:
+        node-version: "20"
+
+    - name: Download hadolint binary
+      shell: bash
+      run: |
+        set -euo pipefail
+        HADOLINT_VERSION="v2.12.0"
+        curl -sSL -o hadolint "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-$(uname -s)-$(uname -m)"
+        chmod +x hadolint
+        echo "$PWD" >> "$GITHUB_PATH"
+
+    - name: Register Hadolint problem matcher
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "::add-matcher::${{ github.action_path }}/problem-matcher.json"
+
+    - name: Run hadolint
+      shell: bash
+      run: |
+        set -euo pipefail
+        CONFIG_ARG=""
+        if [ -n "${{ inputs.config }}" ]; then
+          CONFIG_ARG="--config ${{ inputs.config }}"
+        fi
+        HADOLINT_OUTPUT=$(./hadolint --format tty --failure-threshold info --no-color $CONFIG_ARG "${{ inputs.dockerfile }}" || true)
+        echo "$HADOLINT_OUTPUT"
+
+        # Export for downstream 'Hadolint Summary' step
+        {
+          echo 'HADOLINT_RESULTS<<EOF'
+          echo "$HADOLINT_OUTPUT"
+          echo 'EOF'
+        } >> "$GITHUB_ENV"
