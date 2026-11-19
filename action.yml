@@ -38,10 +38,10 @@ runs:
       run: |
         set -euo pipefail
         CONFIG_ARG=""
-        if [ -n "${{ inputs.config }}" ]; then
-          CONFIG_ARG="--config ${{ inputs.config }}"
+        if [ -n "${INPUTS_CONFIG}" ]; then
+          CONFIG_ARG="--config ${INPUTS_CONFIG}"
         fi
-        HADOLINT_OUTPUT=$(./hadolint --format tty --failure-threshold info --no-color $CONFIG_ARG "${{ inputs.dockerfile }}" || true)
+        HADOLINT_OUTPUT=$(./hadolint --format tty --failure-threshold info --no-color $CONFIG_ARG "${INPUTS_DOCKERFILE}" || true)
         echo "$HADOLINT_OUTPUT"
 
         # Export for downstream 'Hadolint Summary' step
@@ -50,3 +50,6 @@ runs:
           echo "$HADOLINT_OUTPUT"
           echo 'EOF'
         } >> "$GITHUB_ENV"
+      env:
+        INPUTS_CONFIG: ${{ inputs.config }}
+        INPUTS_DOCKERFILE: ${{ inputs.dockerfile }}
